@@ -53,14 +53,21 @@ func (e *HEntry) dump(dir string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	scheme, host, path := u.Scheme, u.Host, u.Path // host,path = www.google.com , /search.do
+	scheme, host, path, query := u.Scheme, u.Host, u.Path, u.RawQuery // host,path = www.google.com , /search.do
 	if scheme == "chrome-extension" {
 		return // ignore all chrome-extension requests.
 	}
 	if i := strings.LastIndex(host, ":"); i != -1 {
 		host = host[0:i] // remove port
 	}
+
 	path = dir + "/" + host + path
+
+	if (query != "") {
+		unescapedQuery, _ := url.QueryUnescape(query)
+		path += "/" + unescapedQuery
+	}
+	
 	if j := strings.LastIndex(path, "/"); j != -1 {
 		os.MkdirAll(path[0:j], os.ModePerm)
 		e.Response.Content.writeTo(path)
